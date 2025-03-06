@@ -1,12 +1,16 @@
 <?php
 
-require_once 'Database.php';
-require_once 'models/Quotation.php';
-require_once 'models/QuotationItem.php';
-require_once 'models/Settings.php';
-require_once 'vendor/autoload.php'; // Assuming TCPDF is installed via Composer
+// Define base path to make includes work from any directory
+$basePath = dirname(dirname(__DIR__)) . '/';
 
-$config = require 'config.php';
+// Include required files with absolute paths
+require_once $basePath . 'Database.php';
+require_once $basePath . 'models/Quotation.php';
+require_once $basePath . 'models/QuotationItem.php';
+require_once $basePath . 'models/Settings.php';
+require_once $basePath . 'vendor/autoload.php'; // TCPDF is installed via Composer
+
+$config = require $basePath . 'config.php';
 $db = new Database($config['database']);
 $quotationModel = new Quotation($db);
 $quotationItemModel = new QuotationItem($db);
@@ -66,7 +70,7 @@ $html = '
 </style>
 
 <div class="logo">
-    <img src="images/isu_logo.png" width="50" height="50">
+    <img src="' . $basePath . 'images/isu_logo.png" width="50" height="50">
 </div>
 
 <div class="header">
