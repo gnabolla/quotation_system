@@ -1,4 +1,4 @@
-<?php include '../partials/head.php' ?>
+<?php include 'views/partials/head.php'; ?>
 
 <h1>Create New Quotation</h1>
 
@@ -191,25 +191,13 @@
             const supplierPrice = parseFloat(row.find('.supplier-price-input').val()) || 0;
             const markupPercentage = parseFloat(row.find('.markup-input').val()) || 0;
             
-            // Make API call to calculate prices
-            $.ajax({
-                url: '/api/calculate-price',
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    supplier_price: supplierPrice,
-                    markup_percentage: markupPercentage,
-                    quantity: quantity
-                }),
-                success: function(response) {
-                    row.find('.final-price-input').val(response.final_price.toFixed(2));
-                    row.find('.total-input').val(response.total_amount.toFixed(2));
-                    calculateTotals();
-                },
-                error: function(error) {
-                    console.error('Error calculating price:', error);
-                }
-            });
+            // Calculate final price and total amount directly (client-side)
+            const finalPrice = supplierPrice * (1 + (markupPercentage / 100));
+            const totalAmount = finalPrice * quantity;
+            
+            // Update the fields immediately
+            row.find('.final-price-input').val(finalPrice.toFixed(2));
+            row.find('.total-input').val(totalAmount.toFixed(2));
         }
         
         function calculateTotals() {
@@ -272,7 +260,11 @@
             
             return true;
         });
+        
+        // Initial calculation for the first row
+        calculateRowTotals($('#itemsTable tbody tr:first'));
+        calculateTotals();
     });
 </script>
 
-<?php include '../partials/foot.php' ?>
+<?php include 'views/partials/foot.php'; ?>

@@ -1,4 +1,4 @@
-<?php include '../partials/head.php' ?>
+<?php include 'views/partials/head.php' ?>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1>Quotation Details</h1>
@@ -103,4 +103,4 @@
     </div>
 </div>
 
-<?php include '../partials/foot.php' ?>
+<?php include 'views/partials/foot.php' ?>

@@ -1,8 +1,10 @@
 <?php
 
+require_once 'Database.php';
 require_once 'models/Quotation.php';
 
-$db = new Database(require 'config.php'['database']);
+$config = require 'config.php';
+$db = new Database($config['database']);
 $quotationModel = new Quotation($db);
 
 $quotations = $quotationModel->all();

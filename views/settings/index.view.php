@@ -1,4 +1,4 @@
-<?php include '../partials/head.php' ?>
+<?php include 'views/partials/head.php' ?>
 
 <h1>System Settings</h1>
 
@@ -53,7 +53,7 @@
     </div>
 </div>
 
-<?php include '../partials/foot.php' ?>
+<?php include 'views/partials/foot.php' ?>
                     
                     <div class="mb-3">
                         <label for="address" class="form-label required-field">Address</label>

@@ -1,15 +1,17 @@
 <?php
 
+require_once 'Database.php';
 require_once 'models/Settings.php';
+
+$config = require 'config.php';
+$db = new Database($config['database']);
+$settingsModel = new Settings($db);
 
 // Ensure this is a POST request
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: /settings');
     exit;
 }
-
-$db = new Database(require 'config.php'['database']);
-$settingsModel = new Settings($db);
 
 $updated = $settingsModel->update([
     'id' => $_POST['id'],

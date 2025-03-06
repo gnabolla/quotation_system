@@ -1,16 +1,18 @@
 <?php
 
+require_once 'Database.php';
 require_once 'models/Quotation.php';
 require_once 'models/QuotationItem.php';
 require_once 'models/Settings.php';
 require_once 'vendor/autoload.php'; // Assuming TCPDF is installed via Composer
 
-$id = $_GET['id'] ?? 0;
-
-$db = new Database(require 'config.php'['database']);
+$config = require 'config.php';
+$db = new Database($config['database']);
 $quotationModel = new Quotation($db);
 $quotationItemModel = new QuotationItem($db);
 $settingsModel = new Settings($db);
+
+$id = $_GET['id'] ?? 0;
 
 $quotation = $quotationModel->find($id);
 if (!$quotation) {

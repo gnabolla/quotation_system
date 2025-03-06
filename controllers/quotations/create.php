@@ -1,9 +1,11 @@
 <?php
 
+require_once 'Database.php';
 require_once 'models/Quotation.php';
 require_once 'models/Settings.php';
 
-$db = new Database(require 'config.php'['database']);
+$config = require 'config.php';
+$db = new Database($config['database']);
 $quotationModel = new Quotation($db);
 $settingsModel = new Settings($db);
 

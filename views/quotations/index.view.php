@@ -1,4 +1,4 @@
-<?php include '../partials/head.php' ?>
+<?php include 'views/partials/head.php' ?>
 
 <h1>All Quotations</h1>
 
@@ -42,4 +42,4 @@
     </div>
 <?php endif; ?>
 
-<?php include '../partials/foot.php' ?>
+<?php include 'views/partials/foot.php' ?>

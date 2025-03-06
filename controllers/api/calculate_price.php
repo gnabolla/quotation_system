@@ -1,5 +1,10 @@
 <?php
 
+require_once 'Database.php';
+
+$config = require 'config.php';
+$db = new Database($config['database']);
+
 // Set response content type to JSON
 header('Content-Type: application/json');
 
