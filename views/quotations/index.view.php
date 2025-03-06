@@ -1,7 +1,16 @@
 <?php include 'views/partials/head.php' ?>
 
 <h1>All Quotations</h1>
-
+<?php
+// Check if PDF template exists
+$templateFile = dirname(dirname(dirname($_SERVER['SCRIPT_FILENAME']))) . '/templates/rfq_template.pdf';
+if (!file_exists($templateFile)):
+?>
+    <div class="alert alert-warning mb-3">
+        <strong>PDF Template Missing:</strong> The PDF template for generating quotations has not been uploaded yet.
+        PDF generation will not work correctly until you <a href="/template/upload" class="alert-link">upload the template</a>.
+    </div>
+<?php endif; ?>
 <div class="mb-3">
     <a href="/quotations/create" class="btn btn-primary">Create New Quotation</a>
 </div>

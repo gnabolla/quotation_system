@@ -39,5 +39,42 @@
         </div>
     </div>
 </div>
+<?php
+// Check if PDF template exists
+$templateFile = dirname(dirname($_SERVER['SCRIPT_FILENAME'])) . '/templates/rfq_template.pdf';
+?>
 
+<div class="row mt-5">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5>PDF Template Status</h5>
+            </div>
+            <div class="card-body">
+                <?php if (file_exists($templateFile)): ?>
+                    <div class="alert alert-success">
+                        <strong>PDF Template:</strong> Uploaded (Last modified: <?= date('F j, Y, g:i a', filemtime($templateFile)) ?>)
+                    </div>
+                    <p>
+                        The RFQ PDF template is ready. Your generated quotations will match the exact layout of the official ISU form.
+                    </p>
+                <?php else: ?>
+                    <div class="alert alert-warning">
+                        <strong>PDF Template Missing:</strong> The PDF template has not been uploaded yet.
+                    </div>
+                    <p>
+                        To ensure your quotations match the exact layout of the official ISU Request for Quotation form,
+                        you need to upload the original PDF template.
+                    </p>
+                <?php endif; ?>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                    <a href="/template/upload" class="btn <?= file_exists($templateFile) ? 'btn-outline-primary' : 'btn-primary' ?>">
+                        <?= file_exists($templateFile) ? 'Update PDF Template' : 'Upload PDF Template' ?>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <?php include 'partials/foot.php' ?>

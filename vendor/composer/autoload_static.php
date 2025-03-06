@@ -6,6 +6,20 @@ namespace Composer\Autoload;
 
 class ComposerStaticInit007a56ce5d77eeb623b8cae82ac92f7f
 {
+    public static $prefixLengthsPsr4 = array (
+        's' => 
+        array (
+            'setasign\\Fpdi\\' => 14,
+        ),
+    );
+
+    public static $prefixDirsPsr4 = array (
+        'setasign\\Fpdi\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/setasign/fpdi/src',
+        ),
+    );
+
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'Datamatrix' => __DIR__ . '/..' . '/tecnickcom/tcpdf/include/barcodes/datamatrix.php',
@@ -30,6 +44,8 @@ class ComposerStaticInit007a56ce5d77eeb623b8cae82ac92f7f
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
+            $loader->prefixLengthsPsr4 = ComposerStaticInit007a56ce5d77eeb623b8cae82ac92f7f::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit007a56ce5d77eeb623b8cae82ac92f7f::$prefixDirsPsr4;
             $loader->classMap = ComposerStaticInit007a56ce5d77eeb623b8cae82ac92f7f::$classMap;
 
         }, null, ClassLoader::class);

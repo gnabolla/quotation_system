@@ -1,6 +1,16 @@
 <?php include 'views/partials/head.php' ?>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
+    <?php
+    // Check if PDF template exists
+    $templateFile = dirname(dirname(dirname($_SERVER['SCRIPT_FILENAME']))) . '/templates/rfq_template.pdf';
+    if (!file_exists($templateFile)):
+    ?>
+        <div class="alert alert-warning mb-4">
+            <strong>PDF Template Missing:</strong> The PDF template has not been uploaded yet.
+            The "Generate PDF" button will not work correctly until you <a href="/template/upload" class="alert-link">upload the template</a>.
+        </div>
+    <?php endif; ?>
     <h1>Quotation Details</h1>
     <div>
         <a href="/quotations" class="btn btn-secondary">Back to List</a>
@@ -65,9 +75,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <?php 
+                    <?php
                     $grandTotal = 0;
-                    foreach ($items as $item): 
+                    foreach ($items as $item):
                         $itemProfit = ($item['final_price'] - $item['supplier_price']) * $item['quantity'];
                         $grandTotal += $item['total_amount'];
                     ?>

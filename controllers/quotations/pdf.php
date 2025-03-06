@@ -27,8 +27,20 @@ if (!$quotation) {
 $items = $quotationItemModel->findByQuotationId($id);
 $settings = $settingsModel->get();
 
+// Create a new instance of TCPDF using the original PDF as template
+// We'll use TCPDF's advanced functionality to use an existing PDF as template
+class MYPDF extends TCPDF {
+    public function Header() {
+        // No header - we'll use the template
+    }
+    
+    public function Footer() {
+        // No footer - we'll use the template
+    }
+}
+
 // Create PDF using TCPDF
-$pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8');
+$pdf = new MYPDF('P', 'mm', 'A4', true, 'UTF-8');
 
 // Set document information
 $pdf->SetCreator('Quotation System');
@@ -42,166 +54,122 @@ $pdf->setPrintFooter(false);
 // Add a page
 $pdf->AddPage();
 
-// Set font
+// Import the original RFQ PDF as a template
+// Assuming the original PDF template is stored at 'templates/rfq_template.pdf'
+$templatePath = $basePath . 'templates/rfq_template.pdf';
+$pdf->setSourceFile($templatePath);
+$tplIdx = $pdf->importPage(1);
+$pdf->useTemplate($tplIdx, 0, 0, $pdf->getPageWidth(), $pdf->getPageHeight());
+
+// Set font for overlaying text
 $pdf->SetFont('helvetica', '', 10);
 
-// Add content
-$html = '
-<style>
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    table, th, td {
-        border: 1px solid #000000;
-    }
-    th, td {
-        padding: 5px;
-        text-align: left;
-    }
-    .header {
-        text-align: center;
-        font-size: 12pt;
-        font-weight: bold;
-    }
-    .logo {
-        text-align: center;
-    }
-</style>
+// Now we'll overlay our dynamic data on top of the template
+// Date
+$pdf->SetXY(175, 28);
+$pdf->Cell(30, 5, date('m/d/Y', strtotime($quotation['date'])), 0, 0, 'L');
 
-<div class="logo">
-    <img src="' . $basePath . 'images/isu_logo.png" width="50" height="50">
-</div>
+// Quotation Number
+$pdf->SetXY(175, 37);
+$pdf->Cell(30, 5, $quotation['quotation_no'], 0, 0, 'L');
 
-<div class="header">
-    Republic of the Philippines<br>
-    ISABELA STATE UNIVERSITY<br>
-    Roxas, Isabela<br>
-    REQUEST FOR QUOTATION
-</div>
+// Company Name
+$pdf->SetXY(55, 46);
+$pdf->Cell(100, 5, $settings['company_name'], 0, 0, 'L');
 
-<table>
-    <tr>
-        <td colspan="2">Date: ' . date('m/d/Y', strtotime($quotation['date'])) . '</td>
-        <td colspan="2">Quotation No.: ' . htmlspecialchars($quotation['quotation_no']) . '</td>
-    </tr>
-    <tr>
-        <td colspan="4">Company Name: ' . htmlspecialchars($settings['company_name']) . '</td>
-    </tr>
-    <tr>
-        <td colspan="4">Address: ' . htmlspecialchars($settings['address']) . '</td>
-    </tr>
-    <tr>
-        <td colspan="4">
-            Please quote your lowest price on the item/s listed below, stating the shortest time delivery<br>
-            and submit your quotation duly signed by your representation
-        </td>
-    </tr>
-    <tr>
-        <td colspan="4" align="right">MARI CHRIS B. MAGUSIB<br>Head, BAC Secretariat</td>
-    </tr>
-    <tr>
-        <td colspan="4">
-            Note:<br>
-            1. Delivery period within ' . htmlspecialchars($settings['delivery_days']) . ' Calendar Days upon receipt of P.O.<br>
-            2. Warranty shall be for period of six (6) months for supplies & materials, one (1) year for equipment, from date of<br>
-            acceptance by the procuring entity.<br>
-            3. Price validity shall be for a period of ' . htmlspecialchars($settings['price_validity_days']) . ' Calendar Days<br>
-            4. Attach Certificate of PhilGEPS Registration, Mayor\'s Permit & DTI Registration.<br>
-            5. Please check VAT REG <input type="checkbox" name="vat_reg"> or NON VAT <input type="checkbox" name="non_vat">.
-        </td>
-    </tr>
-    <tr>
-        <td colspan="2">NAME OF DEPARTMENT/OFFICE: ' . htmlspecialchars($quotation['department']) . '</td>
-        <td colspan="2">PURPOSE: ' . htmlspecialchars($quotation['purpose']) . '</td>
-    </tr>
-</table>
+// Address
+$pdf->SetXY(55, 55);
+$pdf->Cell(100, 5, $settings['address'], 0, 0, 'L');
 
-<table>
-    <tr>
-        <th width="10%">ITEM NO.</th>
-        <th width="10%">QTY.</th>
-        <th width="15%">UNIT</th>
-        <th width="40%">ITEM DESCRIPTION</th>
-        <th width="10%">UNIT PRICE</th>
-        <th width="15%">TOTAL AMOUNT</th>
-    </tr>';
+// Delivery period
+$pdf->SetXY(75, 92);
+$pdf->Cell(30, 5, $settings['delivery_days'], 0, 0, 'L');
 
+// Price validity
+$pdf->SetXY(75, 107);
+$pdf->Cell(30, 5, $settings['price_validity_days'], 0, 0, 'L');
+
+// VAT REG or NON VAT checkbox
+// We'll add a filled square for the selected option
+$pdf->SetFillColor(0, 0, 0);
+if (isset($settings['vat_reg']) && $settings['vat_reg']) {
+    $pdf->Rect(111, 114, 3, 3, 'F');
+} else {
+    $pdf->Rect(140, 114, 3, 3, 'F');
+}
+
+// Department/Office
+$pdf->SetXY(55, 128);
+$pdf->Cell(100, 5, $quotation['department'], 0, 0, 'L');
+
+// Purpose
+$pdf->SetXY(175, 128);
+$pdf->Cell(100, 5, $quotation['purpose'], 0, 0, 'L');
+
+// Items table starts at Y position approximately 142 mm from top
+// Each row is about 7.5 mm high
+$tableStartY = 150;
+$rowHeight = 7.5;
+
+// Calculate grand total
 $grandTotal = 0;
 
-foreach ($items as $item) {
-    $html .= '
-    <tr>
-        <td>' . htmlspecialchars($item['item_no']) . '</td>
-        <td>' . htmlspecialchars($item['quantity']) . '</td>
-        <td>' . htmlspecialchars($item['unit']) . '</td>
-        <td>' . htmlspecialchars($item['description']) . '</td>
-        <td align="right">' . number_format($item['final_price'], 2) . '</td>
-        <td align="right">' . number_format($item['total_amount'], 2) . '</td>
-    </tr>';
+// Add items to the table
+foreach ($items as $index => $item) {
+    $y = $tableStartY + ($index * $rowHeight);
+    
+    // Only process the first 20 items (that's all that fits on the template)
+    if ($index >= 20) {
+        break;
+    }
+    
+    // Item No.
+    $pdf->SetXY(19, $y);
+    $pdf->Cell(10, 5, $item['item_no'], 0, 0, 'C');
+    
+    // Quantity
+    $pdf->SetXY(35, $y);
+    $pdf->Cell(10, 5, $item['quantity'], 0, 0, 'C');
+    
+    // Unit
+    $pdf->SetXY(52, $y);
+    $pdf->Cell(15, 5, $item['unit'], 0, 0, 'C');
+    
+    // Description
+    $pdf->SetXY(75, $y);
+    $pdf->Cell(60, 5, $item['description'], 0, 0, 'L');
+    
+    // Unit Price
+    $pdf->SetXY(150, $y);
+    $pdf->Cell(20, 5, number_format($item['final_price'], 2), 0, 0, 'R');
+    
+    // Total Amount
+    $pdf->SetXY(180, $y);
+    $pdf->Cell(20, 5, number_format($item['total_amount'], 2), 0, 0, 'R');
     
     $grandTotal += $item['total_amount'];
 }
 
-// Fill remaining rows if less than 20 items
-$remainingRows = 20 - count($items);
-for ($i = 0; $i < $remainingRows; $i++) {
-    $html .= '
-    <tr>
-        <td>&nbsp;</td>
-        <td>&nbsp;</td>
-        <td>&nbsp;</td>
-        <td>&nbsp;</td>
-        <td>&nbsp;</td>
-        <td>&nbsp;</td>
-    </tr>';
-}
+// Grand Total
+$pdf->SetXY(180, 300);
+$pdf->Cell(20, 5, number_format($grandTotal, 2), 0, 0, 'R');
 
-$html .= '
-    <tr>
-        <td colspan="5" align="right">GRAND TOTAL</td>
-        <td align="right">' . number_format($grandTotal, 2) . '</td>
-    </tr>
-</table>
+// Printed Name/Signature (Supplier/Dealer)
+$pdf->SetXY(145, 325);
+$pdf->Cell(50, 5, $settings['printed_name'], 0, 0, 'C');
 
-<p>In connection with the above request, I/We quote you the item/s at prices noted above.</p>
+// Contact information
+$pdf->SetXY(177, 335);
+$pdf->Cell(30, 5, $settings['contact_number'], 0, 0, 'L');
 
-<table style="border: none;">
-    <tr>
-        <td width="50%" style="border: none; text-align: center;">
-            _____________________________<br>
-            Printed Name/Signature<br>
-            Canvasser
-        </td>
-        <td width="50%" style="border: none; text-align: center;">
-            ' . htmlspecialchars($settings['printed_name']) . '<br>
-            Printed Name/Signature<br>
-            Supplier/Dealer
-        </td>
-    </tr>
-</table>
+$pdf->SetXY(172, 342);
+$pdf->Cell(30, 5, $settings['tel_number'] ?? '', 0, 0, 'L');
 
-<table style="border: none;">
-    <tr>
-        <td width="50%" style="border: none;">&nbsp;</td>
-        <td width="50%" style="border: none;">
-            Contact Number: ' . htmlspecialchars($settings['contact_number']) . '<br>
-            Tel. Number: ' . htmlspecialchars($settings['tel_number'] ?? '') . '<br>
-            email add: ' . htmlspecialchars($settings['email']) . '<br>
-            FB Page: ' . htmlspecialchars($settings['fb_page'] ?? '') . '
-        </td>
-    </tr>
-</table>
+$pdf->SetXY(172, 349);
+$pdf->Cell(30, 5, $settings['email'], 0, 0, 'L');
 
-<div style="text-align: left; font-size: 8pt; margin-top: 20px;">
-    ISUR-PrO-RFQ-007<br>
-    Effectivity: January 6, 2026<br>
-    Revision: 01
-</div>
-';
-
-// Write HTML content
-$pdf->writeHTML($html, true, false, true, false, '');
+$pdf->SetXY(172, 356);
+$pdf->Cell(30, 5, $settings['fb_page'] ?? '', 0, 0, 'L');
 
 // Output the PDF
 $pdf->Output('Quotation_' . $quotation['quotation_no'] . '.pdf', 'I');

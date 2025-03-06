@@ -1,6 +1,7 @@
 {
     "require": {
-        "tecnickcom/tcpdf": "^6.6"
+        "tecnickcom/tcpdf": "^6.6",
+        "setasign/fpdi": "^2.0"
     },
     "autoload": {
         "classmap": ["models/"]

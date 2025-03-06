@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Quotation System</title>
     <meta charset="UTF-8">
@@ -12,27 +13,33 @@
             padding-top: 20px;
             padding-bottom: 20px;
         }
+
         .table-responsive {
             margin-bottom: 1rem;
         }
+
         .profit-info {
             background-color: #f8f9fa;
             padding: 15px;
             border-radius: 5px;
             margin-bottom: 20px;
         }
+
         .profit-positive {
             color: green;
         }
+
         .profit-negative {
             color: red;
         }
+
         .required-field::after {
             content: " *";
             color: red;
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <header class="mb-4">
@@ -52,6 +59,10 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link <?= getURI('/settings') ? 'active' : '' ?>" href="/settings">Settings</a>
+                            </li>
+                            <!-- Add this new item: -->
+                            <li class="nav-item">
+                                <a class="nav-link <?= getURI('/template/upload') ? 'active' : '' ?>" href="/template/upload">PDF Template</a>
                             </li>
                         </ul>
                     </div>

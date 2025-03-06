@@ -11,6 +11,7 @@ $routes = [
   "/settings" => "controllers/settings/index.php",
   "/settings/update" => "controllers/settings/update.php",
   "/api/calculate-price" => "controllers/api/calculate_price.php",
+  "/template/upload" => "controllers/template/upload.php",
 ];
 
 function routesToController(string $uri, array $routes): void
