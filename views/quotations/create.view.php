@@ -132,139 +132,182 @@
 </form>
 
 <script>
-    $(document).ready(function() {
-        // Add item row
-        $('#addItemBtn').click(function() {
-            const rowCount = $('#itemsTable tbody tr').length;
-            const newRow = $('#itemsTable tbody tr:first').clone();
-            
-            // Update row number and clear values
-            newRow.find('.item-number').text(rowCount + 1);
-            newRow.find('input[type="text"], input[type="number"]').each(function() {
-                const name = $(this).attr('name');
-                if (name) {
-                    $(this).attr('name', name.replace('[0]', `[${rowCount}]`));
-                }
-                
-                // Keep markup percentage at 30, reset others
-                if (!$(this).hasClass('markup-input')) {
-                    $(this).val('');
-                }
-                
-                if ($(this).hasClass('quantity-input')) {
-                    $(this).val(1);
-                }
-            });
-            
-            // Append the new row
-            $('#itemsTable tbody').append(newRow);
-            
-            // Re-bind event handlers
-            bindEventHandlers();
-        });
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to calculate row totals
+    function calculateRow(row) {
+        console.log("Calculating row...");
+        var quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
+        var supplierPrice = parseFloat(row.querySelector('.supplier-price-input').value) || 0;
+        var markup = parseFloat(row.querySelector('.markup-input').value) || 0;
         
-        // Remove item row
-        $(document).on('click', '.remove-item-btn', function() {
-            if ($('#itemsTable tbody tr').length > 1) {
-                $(this).closest('tr').remove();
-                updateItemNumbers();
-                calculateTotals();
-            } else {
-                alert('At least one item is required.');
-            }
-        });
+        // Formula: finalPrice = supplierPrice * (1 + markup/100)
+        var finalPrice = supplierPrice * (1 + (markup / 100));
+        var totalAmount = finalPrice * quantity;
         
-        // Initial binding of event handlers
-        bindEventHandlers();
+        // Set calculated values
+        row.querySelector('.final-price-input').value = finalPrice.toFixed(2);
+        row.querySelector('.total-input').value = totalAmount.toFixed(2);
         
-        function bindEventHandlers() {
-            // Calculate price and total on input change
-            $('.quantity-input, .supplier-price-input, .markup-input').off('input').on('input', function() {
-                const row = $(this).closest('tr');
-                calculateRowTotals(row);
-                calculateTotals();
-            });
-        }
+        console.log("Row calculated - Final Price: " + finalPrice.toFixed(2) + ", Total: " + totalAmount.toFixed(2));
         
-        function calculateRowTotals(row) {
-            const quantity = parseFloat(row.find('.quantity-input').val()) || 0;
-            const supplierPrice = parseFloat(row.find('.supplier-price-input').val()) || 0;
-            const markupPercentage = parseFloat(row.find('.markup-input').val()) || 0;
-            
-            // Calculate final price and total amount directly (client-side)
-            const finalPrice = supplierPrice * (1 + (markupPercentage / 100));
-            const totalAmount = finalPrice * quantity;
-            
-            // Update the fields immediately
-            row.find('.final-price-input').val(finalPrice.toFixed(2));
-            row.find('.total-input').val(totalAmount.toFixed(2));
-        }
-        
-        function calculateTotals() {
-            let grandTotal = 0;
-            let totalProfit = 0;
-            
-            $('.item-row').each(function() {
-                const quantity = parseFloat($(this).find('.quantity-input').val()) || 0;
-                const supplierPrice = parseFloat($(this).find('.supplier-price-input').val()) || 0;
-                const finalPrice = parseFloat($(this).find('.final-price-input').val()) || 0;
-                const totalAmount = parseFloat($(this).find('.total-input').val()) || 0;
-                
-                grandTotal += totalAmount;
-                totalProfit += (finalPrice - supplierPrice) * quantity;
-            });
-            
-            $('#grandTotal').text(grandTotal.toFixed(2));
-            $('#totalProfit').text(totalProfit.toFixed(2));
-            
-            // Update profit color
-            if (totalProfit > 0) {
-                $('#totalProfit').removeClass('profit-negative').addClass('profit-positive');
-            } else {
-                $('#totalProfit').removeClass('profit-positive').addClass('profit-negative');
-            }
-        }
-        
-        function updateItemNumbers() {
-            $('#itemsTable tbody tr').each(function(index) {
-                $(this).find('.item-number').text(index + 1);
-                
-                // Update input names
-                $(this).find('input').each(function() {
-                    const name = $(this).attr('name');
-                    if (name) {
-                        const newName = name.replace(/\[\d+\]/, `[${index}]`);
-                        $(this).attr('name', newName);
-                    }
-                });
-            });
-        }
-        
-        // Validate form before submission
-        $('#quotationForm').on('submit', function(e) {
-            const itemCount = $('#itemsTable tbody tr').length;
-            let validItems = 0;
-            
-            // Check if at least one item has a description
-            $('#itemsTable tbody tr').each(function() {
-                if ($(this).find('.description-input').val().trim() !== '') {
-                    validItems++;
-                }
-            });
-            
-            if (validItems === 0) {
-                e.preventDefault();
-                alert('Please add at least one item with a description.');
-                return false;
-            }
-            
-            return true;
-        });
-        
-        // Initial calculation for the first row
-        calculateRowTotals($('#itemsTable tbody tr:first'));
+        // Recalculate page totals after updating row
         calculateTotals();
+    }
+    
+    // Function to calculate page totals
+    function calculateTotals() {
+        console.log("Calculating totals...");
+        var rows = document.querySelectorAll('#itemsTable tbody tr');
+        var grandTotal = 0;
+        var totalProfit = 0;
+        
+        rows.forEach(function(row) {
+            var quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
+            var supplierPrice = parseFloat(row.querySelector('.supplier-price-input').value) || 0;
+            var finalPrice = parseFloat(row.querySelector('.final-price-input').value) || 0;
+            var total = parseFloat(row.querySelector('.total-input').value) || 0;
+            
+            grandTotal += total;
+            var profit = (finalPrice - supplierPrice) * quantity;
+            totalProfit += profit;
+            
+            console.log("Row - Supplier: " + supplierPrice + ", Final: " + finalPrice + ", Profit: " + profit);
+        });
+        
+        // Update the total displays
+        document.getElementById('grandTotal').textContent = grandTotal.toFixed(2);
+        var profitElement = document.getElementById('totalProfit');
+        profitElement.textContent = totalProfit.toFixed(2);
+        
+        // Update profit color
+        if (totalProfit > 0) {
+            profitElement.classList.remove('profit-negative');
+            profitElement.classList.add('profit-positive');
+        } else {
+            profitElement.classList.remove('profit-positive');
+            profitElement.classList.add('profit-negative');
+        }
+        
+        console.log("Totals calculated - Grand Total: " + grandTotal.toFixed(2) + ", Profit: " + totalProfit.toFixed(2));
+    }
+    
+    // Function to update row numbers
+    function updateRowNumbers() {
+        var rows = document.querySelectorAll('#itemsTable tbody tr');
+        rows.forEach(function(row, index) {
+            // Update row number display
+            row.querySelector('.item-number').textContent = (index + 1);
+            
+            // Update all input names with new index
+            var inputs = row.querySelectorAll('input');
+            inputs.forEach(function(input) {
+                var name = input.getAttribute('name');
+                if (name) {
+                    var newName = name.replace(/\[\d+\]/, '[' + index + ']');
+                    input.setAttribute('name', newName);
+                }
+            });
+        });
+    }
+    
+    // Add a new row
+    document.getElementById('addItemBtn').addEventListener('click', function() {
+        console.log("Adding new row...");
+        // Clone the first row
+        var tbody = document.querySelector('#itemsTable tbody');
+        var firstRow = tbody.querySelector('tr');
+        var newRow = firstRow.cloneNode(true);
+        
+        // Reset input values except markup
+        var inputs = newRow.querySelectorAll('input');
+        inputs.forEach(function(input) {
+            if (input.classList.contains('quantity-input')) {
+                input.value = "1"; // Set quantity to 1
+            } else if (input.classList.contains('markup-input')) {
+                // Keep markup value (usually 30%)
+            } else if (input.classList.contains('final-price-input') || input.classList.contains('total-input')) {
+                input.value = ""; // Clear calculated fields
+            } else {
+                input.value = ""; // Clear other inputs
+            }
+        });
+        
+        // Add the new row
+        tbody.appendChild(newRow);
+        
+        // Update row numbers
+        updateRowNumbers();
+        
+        // Attach event listeners to the new row
+        attachRowEvents(newRow);
+        
+        console.log("New row added");
     });
+    
+    // Remove row event handler
+    function handleRemoveRow(e) {
+        console.log("Removing row...");
+        var tbody = document.querySelector('#itemsTable tbody');
+        if (tbody.querySelectorAll('tr').length > 1) {
+            var row = e.target.closest('tr');
+            row.parentNode.removeChild(row);
+            updateRowNumbers();
+            calculateTotals();
+            console.log("Row removed");
+        } else {
+            alert('At least one item is required.');
+        }
+    }
+    
+    // Input change event handler
+    function handleInputChange(e) {
+        console.log("Input changed");
+        var row = e.target.closest('tr');
+        calculateRow(row);
+    }
+    
+    // Attach events to a row
+    function attachRowEvents(row) {
+        // Remove button
+        var removeBtn = row.querySelector('.remove-item-btn');
+        removeBtn.addEventListener('click', handleRemoveRow);
+        
+        // Input fields that trigger calculations
+        ['quantity-input', 'supplier-price-input', 'markup-input'].forEach(function(className) {
+            var input = row.querySelector('.' + className);
+            input.addEventListener('input', handleInputChange);
+        });
+    }
+    
+    // Attach events to all initial rows
+    document.querySelectorAll('#itemsTable tbody tr').forEach(function(row) {
+        attachRowEvents(row);
+    });
+    
+    // Form validation
+    document.getElementById('quotationForm').addEventListener('submit', function(e) {
+        var rows = document.querySelectorAll('#itemsTable tbody tr');
+        var validItemCount = 0;
+        
+        rows.forEach(function(row) {
+            if (row.querySelector('.description-input').value.trim() !== '') {
+                validItemCount++;
+            }
+        });
+        
+        if (validItemCount === 0) {
+            e.preventDefault();
+            alert('Please add at least one item with a description.');
+        }
+    });
+    
+    // Calculate initial values
+    document.querySelectorAll('#itemsTable tbody tr').forEach(function(row) {
+        calculateRow(row);
+    });
+    
+    console.log("Quotation form initialization complete");
+});
 </script>
 
 <?php include 'views/partials/foot.php'; ?>
